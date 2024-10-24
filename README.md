@@ -32,7 +32,7 @@ To be successful in recreating the use cases supported by this pipeline, there a
 - [dvlint](https://github.com/pingidentity/dvlint) - for Davinci flow linting
 - [trivy](https://github.com/aquasecurity/trivy) - for security scanning
 
-> Note - The last three tools are used by the pipeline in Github, and the pipeline will fail if these tests and configuration checks are not passed. It is recommended to install these tools locally to ensure that the pipeline will pass when changes are pushed.
+> Note - The last three tools are used by the pipeline in Github, and the pipeline will fail if these tests and configuration checks do not pass. Installing these tools locally and running `make devcheck` before committing changes should ensure that the pipeline will pass when changes are pushed.
 
 <!-- TODO - Review Required Permissions-->
 > Note - For PingOne, meeting these requirements means you should have credentials for a worker app residing in the "Administrators" environment that has organization-level scoped roles. For DaVinci, you should have credentials for a user in a non-"Administrators" environment that is part of a group specifically intended to be used by command-line tools or APIs with environment-level scoped roles.
@@ -246,9 +246,24 @@ git push
 
 16. The push will fire a pipeline that runs the same checks as you did locally. As it running on a local development branch, no deployment will occur.
 
-17. Create a pull request in the repository from your branch to `qa`.  The pipeline will run and validate the changes, then deploy the flow to the **qa** environment in your PingOne account.  You can confirm the flow exists and has your change.
+17. Create a pull request in the repository from your branch to `qa`.  The pipeline will run, validate the changes and deploy the flow to the **qa** environment in your PingOne account.  You can confirm the flow exists and has your change.
 
-18. Finally, you can create a pull request from `qa` to `prod`.  The pipeline will run and validate the changes, then deploy the flow to the **prod** environment in your PingOne account.
+18. Finally, you can create a pull request from `qa` to `prod`.  The pipeline will run, validate the changes and deploy the flow to the **prod** environment in your PingOne account.
+
+## Cleanup
+
+When you are finished with the demonstration, you can clean up the resources from the PingOne `dev` environment by running the following commands.  The `-d` flag will destroy the resources in the development environment:
+
+```bash
+source localsecrets
+./scripts/local_feature_deploy.sh -d
+```
+
+After the resources are destroyed:
+
+- delete the branch from the local and remote repositories
+- close the issue in the Github UI
+- delete the feature folder from the `application-state/dev/` in the S3 bucket
 
 ## Conclusion
 
