@@ -91,6 +91,7 @@ resource "docker_image" "registration" {
 resource "docker_container" "registration" {
   name  = "simple-registration"
   image = docker_image.registration.image_id
+  network_mode = "bridge"
   ports {
     internal = 8443
     external = 8443
