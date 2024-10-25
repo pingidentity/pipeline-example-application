@@ -2,7 +2,8 @@
 
 This repository is intended to present a simplified reference demonstrating how a management and deployment pipeline might work for applications that depend on services managed by a central IAM platform team. As such, it is a complement to the [infrastructure](https://github.com/pingidentity/pipeline-example-infrastructure) and [platform](https://github.com/pingidentity/pipeline-example-platform) example pipeline repositories.
 
-> NOTE: This repository directly depends on a completed setup of the [pipeline-example-platform](https://github.com/pingidentity/pipeline-example-platform?tab=readme-ov-file#deploy-prod-and-qa). Please ensure you have completed the steps for configuration leading up to and including the previous link, where a `prod` and `qa` environment have been deployed.
+> [!IMPORTANT]
+> This repository directly depends on a completed setup of the [pipeline-example-platform](https://github.com/pingidentity/pipeline-example-platform?tab=readme-ov-file#deploy-prod-and-qa). Please ensure you have completed the steps for configuration leading up to and including the previous link, where a `prod` and `qa` environment have been deployed.
 
 **Infrastructure** - Components dealing with deploying software onto self-managed Kubernetes infrastructure and any configuration that must be delivered directly via the filesystem.
 
@@ -32,10 +33,12 @@ To be successful in recreating the use cases supported by this pipeline, there a
 - [dvlint](https://github.com/pingidentity/dvlint) - for Davinci flow linting
 - [trivy](https://github.com/aquasecurity/trivy) - for security scanning
 
-> Note - The last three tools are used by the pipeline in Github, and the pipeline will fail if these tests and configuration checks do not pass. Installing these tools locally and running `make devcheck` before committing changes should ensure that the pipeline will pass when changes are pushed.
+> [!TIP]
+> The last three tools are used by the pipeline in Github, and the pipeline will fail if these tests and configuration checks do not pass. Installing these tools locally and running `make devcheck` before committing changes should ensure that the pipeline will pass when changes are pushed.
 
 <!-- TODO - Review Required Permissions-->
-> Note - For PingOne, meeting these requirements means you should have credentials for a worker app residing in the "Administrators" environment that has organization-level scoped roles. For DaVinci, you should have credentials for a user in a non-"Administrators" environment that is part of a group specifically intended to be used by command-line tools or APIs with environment-level scoped roles.
+> [!IMPORTANT]
+> For PingOne, meeting these requirements means you should have credentials for a worker app residing in the "Administrators" environment that has organization-level scoped roles. For DaVinci, you should have credentials for a user in a non-"Administrators" environment that is part of a group specifically intended to be used by command-line tools or APIs with environment-level scoped roles.
 
 ### Development Environment
 
@@ -50,7 +53,8 @@ git push origin dev
 
 Capture the environment ID for the development environment for use later.
 
-> Note - In many cases, the platform team will provide each developer with a unique development environment. For purposes of this guide, we will assume that the development environment is shared and will be used by multiple developers.
+> [!NOTE]
+> The platform team may support ephemeral development environments rather than the static environment mentioned here. For purposes of this guide, we will assume that the development environment is shared and will be used by multiple developers.
 
 ![PingOne Environments](./img/pingOneEnvs.png "PingOne Environments")
 
@@ -58,7 +62,8 @@ Capture the environment ID for the development environment for use later.
 
 Click the **Use this template** button at the top right of this page to create your own repository.  After the repository is created, clone it to your local machine to continue.  The rest of this guide will assume you are working from the root of the cloned repository.
 
-> Note - A pipeline will run and fail when the repository is created. This result is expected as the pipeline is attempting to deploy the application and the necessary configuration has not yet been completed.
+> [!NOTE]
+> A pipeline will run and fail when the repository is created. This result is expected as the pipeline is attempting to deploy the application and the necessary configuration has not yet been completed.
 
 ## Development Lifecycle Diagram
 
@@ -72,7 +77,8 @@ There are a few items to configure before you can successfully use this reposito
 
 ### PingOne Environments
 
-> Note - The configurations in this sample repository rely on environments created from [pipeline-example-platform](https://github.com/pingidentity/pipeline-example-platform). For the `PINGONE_TARGET_ENVIRONMENT_ID_PROD` and `PINGONE_TARGET_ENVIRONMENT_ID_QA` variables needed down below, get the Environment ID for the `prod` and `qa` environments. The Environment ID can be found from the output at the end of a terraform apply (whether from the Github Actions pipeline, or local) or directly from the PingOne console.
+> [!IMPORTANT]
+> The configurations in this sample repository rely on environments created from [pipeline-example-platform](https://github.com/pingidentity/pipeline-example-platform). For the `PINGONE_TARGET_ENVIRONMENT_ID_PROD` and `PINGONE_TARGET_ENVIRONMENT_ID_QA` variables needed down below, get the Environment ID for the `prod` and `qa` environments. The Environment ID can be found from the output at the end of a terraform apply (whether from the Github Actions pipeline, or local) or directly from the PingOne console.
 
 ### Github CLI
 
@@ -102,27 +108,30 @@ The Github pipeline actions depend on sourcing secrets as ephemeral environment 
 cp secretstemplate localsecrets
 ```
 
-> Note - `secretstemplate` is a template file while `localsecrets` contains credentials. `localsecrets` is part of *.gitignore* and should never be committed into the repository. **`secretstemplate`** is committed to the repository, so ensure that you do not edit it directly or you risk exposing your secrets.
+> [!CAUTION]
+> `secretstemplate` is a template file while `localsecrets` contains credentials. `localsecrets` is part of *.gitignore* and should never be committed into the repository. **`secretstemplate`** is committed to the repository, so ensure that you do not edit it directly or you risk exposing your secrets.
 
 Fill in `localsecrets` accordingly, referring to the comments in the file for guidance. Many of the values needed for this file can be found in the corresponding localsecrets file from the platform repository.
 
-After updating the file, run the following command to upload **localsecrets** to Github:
+After updating the file, run the following commands to upload **localsecrets** to Github:
 
 ```bash
-_secrets="$(base64 -i localsecrets)"
+_secrets="$(/usr/bin/base64 -i localsecrets)"
 gh secret set --app actions TERRAFORM_ENV_BASE64 --body $_secrets
 unset _secrets
 ```
 
-> Note - On the Apple Mac platform, if you have installed the **base64** application using brew, there will be a file content failure in the pipeline stemming from the first command shown above.  Use the default version of base64 by specifying the path explicitly: `_secrets="$(/usr/bin/base64 -i localsecrets)"`
+## Development Example Overview
+
+To experience the developer's perspective, a walkthrough follows. The demonstration will simulate the use case of modifying a Davinci flow and promoting the change. To simplify the demonstration, a starting pre-configured flow will be created using Terraform.  The UI components will be built into a Docker image and launched on your local machine. After you have deployed the flow, you will be able to make the changes necessary in the PingOne UI, export the configuration, and promote the change to the QA and Prod environments.
 
 ## Feature Development
 
 Now that the repository and pipeline are configured, the typical git flow can be followed. You will follow steps similar to those documented in the [pipeline-example-platform "Feature Development"](https://github.com/pingidentity/pipeline-example-platform/tree/prod?tab=readme-ov-file#feature-development) section.
 
-A notable difference between this repository and the platform example is that the application pipeline does NOT deploy to feature environments. Feature or development environment configuration deployment only takes place from the local machine. Unlike the IDs for QA and Prod, the development environment ID is not stored in the repository as an environment variable and is not found in the `secretstemplate` file. When the `./scripts/local_feature_deploy.sh` script runs, you will be prompted for the environment ID.  The reasoning behind operating with this flow is the consideration that there might be multiple development environments provided to application developers with no way of distinguishing them in the pipeline with a single variable. As a result, it creates the possibility that developers would change the variable and impact another engineer's work.  Therefore, the developer must provide the environment ID for development and initial testing from the local machine, but the pipeline will handle processing changes to QA and Prod, as those are common across teams and can be defined universally.
+A notable difference between this repository and the platform example is that the application pipeline does NOT deploy "development" feature configurations. Unlike QA and Prod, feature configuration *deployment* only takes place from the local machine and the development environment ID is not stored in the repository. In a following step when the `./scripts/local_feature_deploy.sh` script runs, you will be prompted for the environment ID.  
 
-To experience the developer's perspective, a walkthrough follows. The demonstration will simulate the use case of modifying a Davinci flow and promoting the change. To simplify the demonstration, a starting pre-configured flow will be created using Terraform.  The UI components will be built into a Docker image and launched on your local machine. After you have deployed the flow, you will be able to make the changes necessary in the PingOne UI, export the configuration, and promote the change to the QA and Prod environments.
+This deployment format accounts for static and ephemeral development environment setups, and further helps avoid the possibility that a developer changes a shared variable that impacts another engineer's work. For reliability, the developer must provide the environment ID for development and initial testing from the local machine, but the pipeline will handle deploying changes to QA and Prod, as those are common across teams and can be defined universally.
 
 ### Feature Development Walkthrough
 
@@ -130,7 +139,7 @@ To experience the developer's perspective, a walkthrough follows. The demonstrat
 
 ![Create a new issue](./img/githubissuerequest.png "Create a new issue")
 
-2. Select the issue and click "Create a branch" and choose "Checkout Locally" from the right-hand navigation menu.  This action will cause GitHub to create a development branch on your behalf.
+2. Select the issue and click "Create a branch" and choose "Checkout Locally" from the right-hand navigation menu.
 
 ![Create a branch](./img/createabranch.png "Create a branch")
 
@@ -141,11 +150,11 @@ source localsecrets
 ./scripts/local_feature_deploy.sh
 ```
 
-> Note - If you want to see what Terraform will do without actually deploying, provide the `-g` or `--generate` flag to the script. This flag generates the Terraform configuration without applying it.
+> Note - If you want to see what Terraform will do without actually deploying, provide the `--dry-run` flag to the script. This flag generates the Terraform configuration without applying it by running `terraform plan`.
 
 4. Confirm the deployment by examining the Davinci flow in the PingOne console in the development environment matching the ID you provided. Click on the Davinci link from the PingOne console to open the DaVinci console and select **Flows** from the left navigation panel. Click on the **PingOne DaVinci Registration Example** flow to view the configuration.
 
-5. Try out the flow navigating to [https://127.0.0.1:8080](https://127.0.0.1:8080) to access the container launched from the image built by the script. You will be presented a simple form to enter an email address. Since the address is not stored, you will be prompted to register the user.
+5. The Terraform configuration also deployed a sample client application in a local docker container that can be used to try out the flow by navigating to [https://127.0.0.1:8080](https://127.0.0.1:8080). You will be presented a simple progressive profiling style form to enter an email address. If the email address is not found, you will be prompted to register the user.
 
 6. On the next panel, you are told to provide the email and password. There are password rules in place, but you are not informed when prompted. Try using a simple password such as `password`. The form does not indicate there is a problem, but refuses to accept the password and continue.  The password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.  
 
@@ -175,9 +184,9 @@ source localsecrets
 
 9. Click **Apply** to save the changes, then click **Deploy** to update the flow in the development environment.
 
-10. Try the flow again, and provide a new email address.  Notice on the registration page that you are presented the password requirements message.  There is no need to register the new user as you can see the change has been applied in the interface.
+10. Next, test your change from the client application.  Browse to [https://127.0.0.1:8080](https://127.0.0.1:8080) again and provide a new email address.  Notice on the registration page that you are presented the password requirements message.  Completing the new user registration is optional, as you can already see the change has been applied in the interface.
 
-11. To capture the changes for inclusion in your code, export the flow. You can do so by selecting the three dots at the top right of the editor and clicking **Download Flow JSON**. Ensure to select **Include Variable Values** when you export.
+11. To capture the changes for inclusion in your code, export the flow. You can do so by selecting the three dots at the top right of the DaVinci flow editor UI and clicking **Download Flow JSON**. Ensure to select **Include Variable Values** when you export.
 
 ![Export Menu](./img/pingOneEnvs.png "Export Menu")
 
@@ -244,25 +253,25 @@ git commit -m "Adding password requirements to registration page"
 git push
 ```
 
-16. The push will fire a pipeline that runs the same checks as you did locally. As it running on a local development branch, no deployment will occur.
+16. The push will fire a pipeline that runs the same checks as you did locally. However, since this is a development branch, Terraform deployment will be skipped.
 
-17. Create a pull request in the repository from your branch to `qa`.  The pipeline will run, validate the changes and deploy the flow to the **qa** environment in your PingOne account.  You can confirm the flow exists and has your change.
+17. Create a pull request in the repository from your branch to `qa`.  Creation of the pull request will trigger a pipeline of checks and allow a "reviewer" to validate the changes. Merge the pull request to trigger the deployment workflow against the **qa** environment in your PingOne account.  You may choose to confirm the flow exists in your **qa** environment and has your change.
 
-18. Finally, you can create a pull request from `qa` to `prod`.  The pipeline will run, validate the changes and deploy the flow to the **prod** environment in your PingOne account.
+18. Finally, you can create a pull request from `qa` to `prod`.  Follow the same review process as for qa. Upon merge of the pull request, the pipeline will validate the changes and deploy the flow to the **prod** environment in your PingOne account.
 
 ## Cleanup
 
-When you are finished with the demonstration, you can clean up the resources from the PingOne `dev` environment by running the following commands.  The `-d` flag will destroy the resources in the development environment:
+When you are finished with the demonstration, you can clean up the resources from the PingOne `dev` environment by running the following commands.  The `--destroy` flag will destroy the resources in the development environment:
 
 ```bash
 source localsecrets
-./scripts/local_feature_deploy.sh -d
+./scripts/local_feature_deploy.sh --destroy
 ```
 
-After the resources are destroyed:
+After the development resources are destroyed:
 
 - delete the branch from the local and remote repositories
-- close the issue in the Github UI
+- resolve the issue in the Github UI
 - delete the feature folder from the `application-state/dev/` in the S3 bucket
 
 ## Conclusion

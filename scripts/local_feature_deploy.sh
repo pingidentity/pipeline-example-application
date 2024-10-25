@@ -14,14 +14,14 @@ cat <<END_USAGE
 Usage: 
   This script is used to run terraform apply for your local feature branch only. 
   This script should be run from the root of the repository. 
-  Terraform Secrets (\`localsecrets\` file) should be sourced and exported in the evironment
+  Terraform secrets (\`localsecrets\` file) should be sourced and exported in the environment
 
 {options}
     where {options} include:
     -d, --destroy
       Run terraform destroy instead of apply
-    -g, --generate
-      Generate terraform resources from import blocks
+    --dry-run
+      Show what Terraform will do without applying changes (terraform plan)
 END_USAGE
 exit 99
 }
@@ -37,8 +37,8 @@ while ! test -z ${1} ; do
   case "${1}" in
     -d|--destroy)
       _command="destroy" ;;
-    -g|--generate)
-      _command="plan -generate-config-out=generated-platform.tf" ;;
+    --dry-run)
+      _command="plan" ;;  # Switch to terraform plan for dry-run
     -v|--verbose)
       set -x ;;
     -h|--help)
@@ -79,11 +79,10 @@ terraform -chdir="${TFDIR}" init -migrate-state \
   -backend-config="region=${_region}" \
   -backend-config="key=${_key}"
 
-## terraform apply
+## terraform apply, plan or destroy
 
-echo "Running terraform apply for branch: ${_branch}, You will be prompted to enter the required variables."
+echo "Running terraform ${_command} for branch: ${_branch}, You will be prompted to enter the required variables."
 
 export TF_VAR_pingone_environment_name="${_branch}"
 
 terraform -chdir="${TFDIR}" ${_command}
-
