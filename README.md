@@ -156,6 +156,7 @@ source localsecrets
 
 > [!NOTE]
 > If you want to see what Terraform will do without actually deploying, provide the `--dry-run` flag to the script. This flag generates the Terraform configuration without applying it by running `terraform plan`.
+
 > [!NOTE]
 > The `local_feature_deploy.sh` script will not run against the `prod` or `qa` branches.
 
