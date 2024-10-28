@@ -143,7 +143,11 @@ This deployment format accounts for static and ephemeral development environment
 
 ![Create a branch](./img/createabranch.png "Create a branch")
 
-3. Deploy the sample Davinci flow to the development environment by running the following commands. You will be prompted for the development environment ID:
+3. When you create the branch, you are provided the commands to check out the branch locally. Run the commands as instructed.  
+
+![Check out the new branch](./img/checkoutbranch.png "Check out the new branch")
+
+4. Deploy the sample Davinci flow to the development environment by running the following commands. You will be prompted for the development environment ID:
 
 ```bash
 source localsecrets
@@ -152,16 +156,22 @@ source localsecrets
 
 > [!NOTE]
 > If you want to see what Terraform will do without actually deploying, provide the `--dry-run` flag to the script. This flag generates the Terraform configuration without applying it by running `terraform plan`.
+> [!NOTE]
+> The `local_feature_deploy.sh` script will not run against the `prod` or `qa` branches.
 
-4. Confirm the deployment by examining the Davinci flow in the PingOne console in the development environment matching the ID you provided. Click on the Davinci link from the PingOne console to open the DaVinci console and select **Flows** from the left navigation panel. Click on the **PingOne DaVinci Registration Example** flow to view the configuration.
+5. Confirm the deployment by examining the Davinci flow in the PingOne console in the development environment matching the ID you provided. Click on the Davinci link from the PingOne console to open the DaVinci console and select **Flows** from the left navigation panel. Click on the **PingOne DaVinci Registration Example** flow to view the configuration.
 
-5. The Terraform configuration also deployed a sample client application in a local docker container that can be used to try out the flow by navigating to [https://127.0.0.1:8080](https://127.0.0.1:8080). You will be presented a simple progressive profiling style form to enter an email address. If the email address is not found, you will be prompted to register the user.
+6. The Terraform configuration also deployed a sample client application in a local docker container that can be used to try out the flow by navigating to [https://127.0.0.1:8443](https://127.0.0.1:8443). You will be presented a simple progressive profiling style form to enter an email address. If the email address is not found, you will be prompted to register the user.
 
-6. On the next panel, you are told to provide the email and password. There are password rules in place, but you are not informed when prompted. Try using a simple password such as `password`. The form does not indicate there is a problem, but refuses to accept the password and continue.  The password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.  
+> [!NOTE]
+> For demo purposes, there is a self-signed certificate in the Docker image that will require you to accept the security warning in your browser to proceed.
 
-7. Create a valid password. After registering the user, you will be redirected to login.
 
-8. To improve the flow, you will add a small prompt on the registration page to indicate that the password must meet the requirements.  To do so, select the **Registration Window** node in the Davinci flow editor. Replace the text in the HTML Template editor with the following.  The only change in this block from what is provided is the addition of the password requirements notification and some descriptive comments.
+7. On the next panel, you are told to provide the email and password. There are password rules in place, but you are not informed when prompted. Try using a simple password such as `password`. The form does not indicate there is a problem, but refuses to accept the password and continue.  The password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.  
+
+8. Create a valid password. After registering the user, you will be redirected to login.
+
+9. To improve the flow, you will add a small prompt on the registration page to indicate that the password must meet the requirements.  To do so, select the **Registration Window** node in the Davinci flow editor. Replace the text in the HTML Template editor with the following code block. The only change from what is provided is the addition of the password requirements notification and some descriptive comments.
 
 ```html
 <form id="registerForm">
@@ -183,15 +193,15 @@ source localsecrets
 </form>
 ```
 
-9. Click **Apply** to save the changes, then click **Deploy** to update the flow in the development environment.
+10. Click **Apply** to save the changes, then click **Deploy** to update the flow in the development environment.
 
-10. Next, test your change from the client application.  Browse to [https://127.0.0.1:8080](https://127.0.0.1:8080) again and provide a new email address.  Notice on the registration page that you are presented the password requirements message.  Completing the new user registration is optional, as you can already see the change has been applied in the interface.
+11. Next, test your change from the client application.  Browse to [https://127.0.0.1:8443](https://127.0.0.1:8443) again and provide a new email address.  Notice on the registration page that you are presented the password requirements message.  Completing the new user registration is optional, as you can already see the change has been applied in the interface.
 
-11. To capture the changes for inclusion in your code, export the flow. You can do so by selecting the three dots at the top right of the DaVinci flow editor UI and clicking **Download Flow JSON**. Ensure to select **Include Variable Values** when you export.
+12. To capture the changes for inclusion in your code, export the flow. You can do so by selecting the three dots at the top right of the DaVinci flow editor UI and clicking **Download Flow JSON**. Ensure to select **Include Variable Values** when you export.
 
 ![Export Menu](./img/pingOneEnvs.png "Export Menu")
 
-12. For the sake of brevity, assume that testing has been done, and you are ready to proceed. After the application is "tested", the new configuration must be added to the Terraform configuration. This addition will happen in a few steps:
+13. For the sake of brevity, assume that testing has been done, and you are ready to proceed. After the application is "tested", the new configuration must be added to the Terraform configuration. This addition will happen in a few steps:
 
   a. Copy the contents of the downloaded JSON file and use them to replace the `terraform/davinci-flows/davinci-widget-reg-authn-flow.json` file contents. If you examine the changes, you will see that it involves the company ID, metadata about the file and the changes you made to the node in the flow.
 
@@ -238,15 +248,15 @@ needed.
 Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
 ```
 
-13. If you want to go one step further, you can modify the HTML code that is placed in the nginx image. To do so, you can modify `./terraform/sample-app/index.html` in some manner.  When the script is ran again, it will detect the change to the file, rebuild the Docker image, and launch a replacement container for the UI.
+14. If you want to go one step further, you can modify the HTML code that is placed in the nginx image. To do so, you can modify `./terraform/sample-app/index.html` in some manner.  When the script is ran again, it will detect the change to the file, rebuild the Docker image, and launch a replacement container for the UI.
 
-14. Before committing and pushing the changes, run a devcheck against the code to ensure the formatting and syntax are correct, ignoring any warnings or informational messages:
+15. Before committing and pushing the changes, run a devcheck against the code to ensure the formatting and syntax are correct, ignoring any warnings or informational messages:
 
 ```bash
 make devcheck
 ```
 
-15. Commit and push the changes to the repository:
+16. Commit and push the changes to the repository:
 
 ```bash
 git add .
@@ -254,11 +264,11 @@ git commit -m "Adding password requirements to registration page"
 git push
 ```
 
-16. The push will fire a pipeline that runs the same checks as you did locally. However, since this is a development branch, Terraform deployment will be skipped.
+17. The push will fire a pipeline that runs the same checks as you did locally. However, since this is a development branch, Terraform deployment will be skipped.
 
-17. Create a pull request in the repository from your branch to `qa`.  Creation of the pull request will trigger a pipeline of checks and allow a "reviewer" to validate the changes. Merge the pull request to trigger the deployment workflow against the **qa** environment in your PingOne account.  You may choose to confirm the flow exists in your **qa** environment and has your change.
+18. Create a pull request in the repository from your branch to `qa`.  Creation of the pull request will trigger a pipeline of checks and allow a "reviewer" to validate the changes. Merge the pull request to trigger the deployment workflow against the **qa** environment in your PingOne account.  You may choose to confirm the flow exists in your **qa** environment and has your change.
 
-18. Finally, you can create a pull request from `qa` to `prod`.  Follow the same review process as for qa. Upon merge of the pull request, the pipeline will validate the changes and deploy the flow to the **prod** environment in your PingOne account.
+19. Finally, you can create a pull request from `qa` to `prod`.  Follow the same review process as for qa. Upon merge of the pull request, the pipeline will validate the changes and deploy the flow to the **prod** environment in your PingOne account.
 
 ## Cleanup
 
