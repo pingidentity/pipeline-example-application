@@ -65,6 +65,15 @@ Click the **Use this template** button at the top right of this page to create y
 > [!NOTE]
 > A pipeline will run and fail when the repository is created. This result is expected as the pipeline is attempting to deploy the application and the necessary configuration has not yet been completed.
 
+Create a `qa` branch from the `prod` branch in the repository.  This branch will be used to test the changes before they are promoted to the `prod` branch.  Changes to the `qa` branch in this repository are deployed to the `qa` environment in PingOne.  As with the `prod` branch, the pipeline will fail due to missing configuration.
+
+```bash
+git checkout prod
+git pull origin prod
+git checkout -b qa
+git push origin qa
+```
+
 ## Development Lifecycle Diagram
 
 The use cases in this repository follow a flow similar to this diagram:
