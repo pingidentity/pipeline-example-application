@@ -84,6 +84,9 @@
                     ]
                   }
                 ]
+              },
+              "nodeDescription": {
+                "value": "Prompt for Email"
               }
             },
             "status": "configured",
@@ -122,6 +125,9 @@
               },
               "userIdentifierForFindUser": {
                 "value": "[\n  {\n    \"children\": [\n      {\n        \"text\": \"\"\n      },\n      {\n        \"text\": \"\"\n      },\n      {\n        \"type\": \"link\",\n        \"src\": \"http.svg\",\n        \"url\": \"email\",\n        \"data\": \"{{local.cfpq1xg2dc.payload.output.email}}\",\n        \"tooltip\": \"{{local.cfpq1xg2dc.payload.output.email}}\",\n        \"children\": [\n          {\n            \"text\": \"email\"\n          }\n        ]\n      },\n      {\n        \"text\": \"\"\n      }\n    ]\n  }\n]"
+              },
+              "nodeDescription": {
+                "value": "Check if user exists"
               }
             },
             "status": "configured",
@@ -228,6 +234,9 @@
                     ]
                   }
                 ]
+              },
+              "nodeDescription": {
+                "value": "Prompt for existing user password"
               }
             },
             "status": "configured",
@@ -309,6 +318,9 @@
                     ]
                   }
                 ]
+              },
+              "nodeDescription": {
+                "value": "Register new user"
               }
             },
             "status": "configured",
@@ -373,6 +385,9 @@
               },
               "username": {
                 "value": "[\n  {\n    \"children\": [\n      {\n        \"text\": \"\"\n      },\n      {\n        \"text\": \"\"\n      },\n      {\n        \"type\": \"link\",\n        \"src\": \"http.svg\",\n        \"url\": \"email\",\n        \"data\": \"{{local.0di26c5iy7.payload.output.email}}\",\n        \"tooltip\": \"{{local.0di26c5iy7.payload.output.email}}\",\n        \"children\": [\n          {\n            \"text\": \"email\"\n          }\n        ]\n      },\n      {\n        \"text\": \"\"\n      }\n    ]\n  }\n]"
+              },
+              "nodeDescription": {
+                "value": "Create new user"
               }
             },
             "status": "configured",
@@ -437,6 +452,9 @@
               },
               "nodeTitle": {
                 "value": "Successfully Completed Login"
+              },
+              "nodeDescription": {
+                "value": "Display login success"
               }
             },
             "status": "configured",
@@ -495,6 +513,9 @@
               },
               "password": {
                 "value": "[\n  {\n    \"children\": [\n      {\n        \"text\": \"\"\n      },\n      {\n        \"text\": \"\"\n      },\n      {\n        \"type\": \"link\",\n        \"src\": \"http.svg\",\n        \"url\": \"password\",\n        \"data\": \"{{local.eg2kadjdo1.payload.output.password}}\",\n        \"tooltip\": \"{{local.eg2kadjdo1.payload.output.password}}\",\n        \"children\": [\n          {\n            \"text\": \"password\"\n          }\n        ]\n      },\n      {\n        \"text\": \"\"\n      }\n    ]\n  }\n]"
+              },
+              "nodeDescription": {
+                "value": "Check provided password"
               }
             },
             "status": "configured",
@@ -564,6 +585,9 @@
               },
               "nodeTitle": {
                 "value": "Successfully Completed Reg"
+              },
+              "nodeDescription": {
+                "value": "Display successful registration"
               }
             },
             "status": "configured",

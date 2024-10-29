@@ -89,8 +89,8 @@ resource "docker_image" "registration" {
 
 # Define a Docker container resource
 resource "docker_container" "registration" {
-  name  = "simple-registration"
-  image = docker_image.registration.image_id
+  name         = "simple-registration"
+  image        = docker_image.registration.image_id
   network_mode = "bridge"
   ports {
     internal = 8443
