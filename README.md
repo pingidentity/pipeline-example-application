@@ -29,9 +29,11 @@ To be successful in recreating the use cases supported by this pipeline, there a
 
 - Completion of all pre-requisites and configuration steps leading to [Feature Development](https://github.com/pingidentity/pipeline-example-platform?tab=readme-ov-file#feature-development) from the example-pipeline-platform repository
 - [Docker](https://docs.docker.com/engine/install/) - used to deploy the UI for a sample interface
-- [tflint](https://github.com/terraform-linters/tflint) - for Terraform linting
-- [dvlint](https://github.com/pingidentity/dvlint) - for Davinci flow linting
-- [trivy](https://github.com/aquasecurity/trivy) - for security scanning
+- [terraform](https://developer.hashicorp.com/terraform/install) - HashiCorp Terraform (version 1.9.8 was used in this guide)
+- [sentinel](https://developer.hashicorp.com/terraform/tutorials/policy/sentinel-install) - HashiCorp Sentinel for policy enforcement (version 0.28.0 was used in this guide)
+- [tflint](https://github.com/terraform-linters/tflint) - for Terraform linting (version 0.53.0 was used in this guide)
+- [dvlint](https://github.com/pingidentity/dvlint) - for Davinci flow linting (version 1.0.3 was used in this guide)
+- [trivy](https://github.com/aquasecurity/trivy) - for security scanning (version 0.56.2 was used in this guide)
 
 > [!TIP]
 > The last three tools are used by the pipeline in Github, and the pipeline will fail if these tests and configuration checks do not pass. Installing these tools locally and running `make devcheck` before committing changes should ensure that the pipeline will pass when changes are pushed.
@@ -237,7 +239,7 @@ Terraform will perform the following actions:
       ~ flow_export_json        = (sensitive value)
       ~ flow_json               = (sensitive value)
       id                      = "a6d551f1d7aa2612f2bf6c371b0026e1"
-        name                    = "PingOne DaVinci Registration Example"
+        name                    = "AppTeam PingOne DaVinci Registration Example"
         # (4 unchanged attributes hidden)
 
         # (3 unchanged blocks hidden)

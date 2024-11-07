@@ -32,7 +32,7 @@ resource "davinci_flow" "registration_flow" {
 # {@link https://registry.terraform.io/providers/pingidentity/davinci/latest/docs/resources/application}
 
 resource "davinci_application" "registration_flow_app" {
-  name           = "PingOne DaVinci Registration Example"
+  name           = "AppTeam PingOne DaVinci Registration Example"
   environment_id = var.pingone_target_environment_id
   depends_on     = [data.davinci_connections.read_all]
   oauth {

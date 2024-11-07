@@ -22,7 +22,7 @@
   },
   "isInputSchemaSaved": false,
   "isOutputSchemaSaved": false,
-  "name": "PingOne DaVinci Registration Example",
+  "name": "AppTeam PingOne DaVinci Registration Example",
   "publishedVersion": 4,
   "settings": {
     "csp": "worker-src 'self' blob:; script-src 'self' https://cdn.jsdelivr.net https://code.jquery.com https://devsdk.singularkey.com http://cdnjs.cloudflare.com 'unsafe-inline' 'unsafe-eval';",
@@ -616,7 +616,7 @@
             "nodeType": "ANNOTATION",
             "properties": {
               "annotation": {
-                "value": "PingOne DaVinci Registration Example"
+                "value": "AppTeam PingOne DaVinci Registration Example"
               },
               "annotationTextColor": {
                 "value": "#ffffffff"

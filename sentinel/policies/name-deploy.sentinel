@@ -1,0 +1,28 @@
+# Imports mock data
+import "tfplan/v2" as tfplan
+
+# Get all DaVinci registration flows that are being created or updated
+davinci_registration_flows = filter tfplan.resource_changes as _, rc {
+	rc.type is "davinci_flow" and
+		rc.name is "registration_flow" and
+		(rc.change.actions contains "create" or rc.change.actions is ["update"])
+}
+
+# Test that deploy is set to true
+deploy_true = rule {
+	all davinci_registration_flows as _, flow {
+		flow.change.after.deploy is true
+	}
+}
+
+# Test deployment name
+deployment_name = rule {
+	all davinci_registration_flows as _, flow {
+		flow.change.after.name contains "AppTeam"
+	}
+}
+
+# Test all conditions
+main = rule {
+	deploy_true and deployment_name
+}

@@ -1,0 +1,30 @@
+resource_changes = {
+	"davinci_flow.registration_flow[0]": {
+		"change": {
+			"actions": [
+				"create",
+			],
+			"after": {
+				"deploy":      true,
+				"name":        "AppTeam PingOne DaVinci Registration Example 1",
+			},
+		},
+		"name":            "registration_flow",
+		"provider_name":   "registry.terraform.io/pingidentity/davinci",
+		"type":            "davinci_flow",
+	},
+	"davinci_flow.registration_flow[1]": {
+		"change": {
+			"actions": [
+				"update",
+			],
+	 		"after": {
+	 			"deploy":      true,
+	 			"name":        "AppTeam PingOne DaVinci Registration Example 2",
+			},
+		},
+		"name":            "registration_flow",
+		"provider_name":   "registry.terraform.io/pingidentity/davinci",
+		"type":            "davinci_flow",
+	},
+}
