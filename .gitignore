@@ -35,6 +35,7 @@ crash.*.log
 # Used by OPA policies
 **/plan.tfplan
 **/plan.json
+**/opa_output.json
 
 # Ignore override files as they are usually used to override resources locally and so
 # are not checked in

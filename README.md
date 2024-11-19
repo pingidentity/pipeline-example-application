@@ -30,13 +30,16 @@ To be successful in recreating the use cases supported by this pipeline, there a
 - Completion of all pre-requisites and configuration steps leading to [Feature Development](https://github.com/pingidentity/pipeline-example-platform?tab=readme-ov-file#feature-development) from the example-pipeline-platform repository
 - [Docker](https://docs.docker.com/engine/install/) - used to deploy the UI for a sample interface
 - [terraform](https://developer.hashicorp.com/terraform/install) - HashiCorp Terraform (version 1.9.8 was used in this guide)
-- [opa](https://www.openpolicyagent.org/docs/latest/#running-opa) - Open Policy Agent (version 0.70.0 was used in this guide)
+- [opa](https://www.openpolicyagent.org/docs/latest/#running-opa) - Open Policy Agent for policy enforcement (version 0.70.0 was used in this guide)
 - [tflint](https://github.com/terraform-linters/tflint) - for Terraform linting (version 0.53.0 was used in this guide)
 - [dvlint](https://github.com/pingidentity/dvlint) - for Davinci flow linting (version 1.0.3 was used in this guide)
 - [trivy](https://github.com/aquasecurity/trivy) - for security scanning (version 0.56.2 was used in this guide)
+- [shellcheck](https://github.com/koalaman/shellcheck?tab=readme-ov-file#installing) - for shell script linting (version 0.10.0 was used in this guide)
+- [shfmt](https://github.com/mvdan/sh) - for shell script formatting (version 3.10.0 was used in this guide)
+- [jq](https://jqlang.github.io/jq/download/) - for JSON parsing (version 1.7.1 was used in this guide)
 
 > [!TIP]
-> The last three tools are used by the pipeline in Github, and the pipeline will fail if these tests and configuration checks do not pass. Installing these tools locally and running `make devcheck` before committing changes should ensure that the pipeline will pass when changes are pushed.
+> The last six tools are used by the pipeline in Github, and the pipeline will fail if these tests and configuration checks do not pass. Installing these tools locally and running `make devcheck` before committing changes should ensure that the pipeline will pass when changes are pushed.
 
 <!-- TODO - Review Required Permissions-->
 > [!IMPORTANT]
@@ -66,15 +69,6 @@ Click the **Use this template** button at the top right of this page to create y
 
 > [!NOTE]
 > A pipeline will run and fail when the repository is created. This result is expected as the pipeline is attempting to deploy the application and the necessary configuration has not yet been completed.
-
-Create a `qa` branch from the `prod` branch in the repository.  This branch will be used to test the changes before they are promoted to the `prod` branch.  Changes to the `qa` branch in this repository are deployed to the `qa` environment in PingOne.  As with the `prod` branch, the pipeline will fail due to missing configuration.
-
-```bash
-git checkout prod
-git pull origin prod
-git checkout -b qa
-git push origin qa
-```
 
 ## Development Lifecycle Diagram
 
@@ -211,7 +205,7 @@ source localsecrets
 
 12. To capture the changes for inclusion in your code, export the flow. You can do so by selecting the three dots at the top right of the DaVinci flow editor UI and clicking **Download Flow JSON**. Ensure to select **Include Variable Values** when you export.
 
-![Export Menu](./img/exportMenu.png "Export Menu")
+![Export Menu](./img/pingOneEnvs.png "Export Menu")
 
 13. For the sake of brevity, assume that testing has been done, and you are ready to proceed. After the application is "tested", the new configuration must be added to the Terraform configuration. This addition will happen in a few steps:
 
