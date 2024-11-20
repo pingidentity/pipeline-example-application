@@ -24,5 +24,5 @@ variable "pingone_davinci_admin_region" {
 }
 variable "pingone_target_environment_id" {
   type        = string
-  description = "The target environment id to deploy the application to"
+  description = "The target environment id to which to deploy the application"
 }

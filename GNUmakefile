@@ -7,7 +7,6 @@ DVLINT_INCLUDE_RULES:=
 DVLINT_IGNORE_RULES:=dv-rule-annotations-001,dv-rule-empty-flow-001
 default: devcheck
 
-
 check-for-terraform:
 	@command -v terraform >/dev/null 2>&1 || { echo >&2 "'terraform' is required but not installed. Aborting."; exit 1; }
 
@@ -39,7 +38,6 @@ dvlint:
 		fi; \
 	done
 
-
 validate: check-for-terraform
 	@echo "==> Validating Terraform code with terraform validate..."
 	@if [ -d "./$(DEV_DIR)" ]; then \
@@ -51,6 +49,16 @@ trivy:
 	@command -v trivy >/dev/null 2>&1 || { echo >&2 "'trivy' is required but not installed. Aborting."; exit 1; }
 	@trivy config ./
 
-devcheck: fmt fmt-check validate tflint dvlint trivy
+shell-files:
+	@echo "==> Checking and formatting shell scripts..."
+	@command -v shfmt >/dev/null 2>&1 || { echo >&2 "'shfmt' is required but not installed. Aborting."; exit 1; }
+	@command -v shellcheck >/dev/null 2>&1 || { echo >&2 "'shellcheck' is required but not installed. Aborting."; exit 1; }
+	@echo "==> Formatting shell scripts with shfmt..."
+	@shfmt -w -i 4 -sr -ci ./scripts/
+
+	@echo "==> Checking shell scripts with shellcheck..."
+	@shellcheck --exclude=SC1090,SC1091 ./scripts/*.sh
+
+devcheck: fmt fmt-check validate tflint dvlint trivy shell-files
 
 .PHONY: devcheck fmt fmt-check validate tflint dvlint trivy
