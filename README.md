@@ -39,7 +39,7 @@ To be successful in recreating the use cases supported by this pipeline, there a
 - [jq](https://jqlang.github.io/jq/download/) - for JSON parsing (version 1.7.1 was used in this guide)
 
 > [!TIP]
-> The last six tools are used by the pipeline in Github, and the pipeline will fail if these tests and configuration checks do not pass. Installing these tools locally and running `make devcheck` before committing changes should ensure that the pipeline will pass when changes are pushed.
+> The last six tools are used by the pipeline in Github, and the pipeline will fail if these tests and configuration checks do not pass. To help ensure the pipeline instance of these tools passes, install these tools locally and run `make devcheck` before committing changes
 
 <!-- TODO - Review Required Permissions-->
 > [!IMPORTANT]
