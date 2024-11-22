@@ -30,7 +30,8 @@ To be successful in recreating the use cases supported by this pipeline, there a
 - Completion of all pre-requisites and configuration steps leading to [Feature Development](https://github.com/pingidentity/pipeline-example-platform?tab=readme-ov-file#feature-development) from the example-pipeline-platform repository
 - [Docker](https://docs.docker.com/engine/install/) - used to deploy the UI for a sample interface
 - [terraform](https://developer.hashicorp.com/terraform/install) - HashiCorp Terraform (version 1.9.8 was used in this guide)
-- [opa](https://www.openpolicyagent.org/docs/latest/#running-opa) - Open Policy Agent for policy enforcement (version 0.70.0 was used in this guide)
+- [opa](https://developer.hashicorp.com/terraform/tutorials/policy/sentinel-install) - Open Policy Agent for policy enforcement example (version 0.28.0 was used in this guide)
+- [regal](https://github.com/StyraInc/regal) - for OPA policy syntax validation and linting (version 0.29.2 was used in this guide)
 - [tflint](https://github.com/terraform-linters/tflint) - for Terraform linting (version 0.53.0 was used in this guide)
 - [dvlint](https://github.com/pingidentity/dvlint) - for Davinci flow linting (version 1.0.3 was used in this guide)
 - [trivy](https://github.com/aquasecurity/trivy) - for security scanning (version 0.56.2 was used in this guide)
@@ -39,7 +40,7 @@ To be successful in recreating the use cases supported by this pipeline, there a
 - [jq](https://jqlang.github.io/jq/download/) - for JSON parsing (version 1.7.1 was used in this guide)
 
 > [!TIP]
-> The last six tools are used by the pipeline in Github, and the pipeline will fail if these tests and configuration checks do not pass. To help ensure the pipeline instance of these tools passes, install these tools locally and run `make devcheck` before committing changes
+> The last six tools are used by the pipeline in Github, and the pipeline will fail if these tests and configuration checks do not pass. Installing these tools locally and running `make devcheck` before committing changes should ensure that the pipeline will pass when changes are pushed. To explore policy enforcement with the `opa` and `regal` tools, see **Policies in CICD** under the ***Advanced Topics*** section at the end of this document.
 
 <!-- TODO - Review Required Permissions-->
 > [!IMPORTANT]
@@ -294,3 +295,236 @@ After the development resources are destroyed:
 ## Conclusion
 
 This repository demonstrates a simplified example of how a pipeline can be used to manage the development and deployment of an application that relies on services managed by a central IAM platform team. The pipeline is designed to be flexible and extensible, allowing for the addition of new features and services as needed. By following the steps outlined in this repository, you can gain a better understanding of how to implement a similar pipeline in your own environment.
+
+## Advanced Topics
+
+### Policies in CICD
+
+While not a requirement for running a CICD pipeline, an emerging best practice for application and infrastructure automation is to include policy enforcement. One such tool in this area is the Open Policy Agent, or **opa**. This demonstration repository includes an example of the use of `opa` in a pipeline. The policy is defined in the `opa` directory.  When a pull request is opened against either the **qa** or **prod** branches, an additional step is included in the pipeline that will test the planned changes in the infrastructure against a sample policy that is provided for your exploration.
+
+The files provided for deploying the application will pass the policy check as provided.  If you want to observe how the policies work, see the **Policy Enforcement** section below to interact with the policies using a local script.  As with the developer flow for working with Terraform, testing against any policies must be done locally prior to pushing changes to the repository.  Automating the policy checks on the development branch is not possible due to the need for manual input of the environment ID.
+
+The example policy performs two checks against the Terraform plan:
+
+- Ensure that the `name` attribute of any `davinci_flow` resource to be created or updated starts with the string `AppTeam`.  The example use case is our fictitious company wants the name of the team to be reflected in every flow name for easy identification.
+- Ensure that the `deploy` flag is set to `true` for any `davinci_flow` resource to be created or updated.  The use case here is to ensure that all flows are deployed when they are created or updated.
+
+> [!NOTE]
+> Other policies may be added to this repository in the future. These policies are provided as examples to help you get started with policy enforcement in your own pipelines.
+
+#### OPA Overview
+
+As stated on their [website](https://www.openpolicyagent.org/), Open Policy Agent (OPA) *is an open source, general-purpose policy engine that unifies policy enforcement across the stack. OPA provides a high-level declarative language that lets you specify policy as code and simple APIs to offload policy decision-making from your software. You can use OPA to enforce policies in microservices, Kubernetes, CI/CD pipelines, API gateways, and more.*
+
+OPA works by querying input, provided as JSON, against a policy written in the Rego language. The policy is a set of rules that define what is allowed or denied based on the input. Using the declarative language allows non-developers to create policies to meet their requirements.
+
+For running OPA with terraform, the process is as follows:
+
+- Policy files are written in the Rego language
+- A `terraform plan` is generated and written to a file
+- The plan output file is converted to json using `terraform show`
+- The converted json output is passed to the `opa` command along with the policy files, where the planned changes are evaluated
+- The `opa` command returns a pass or fail result based on the policy evaluation
+
+#### Sample Policy Files
+
+The files provided in this repository are arranged according to best practices for rego design, including the directory structure:
+
+```bash
+./opa
+└── terraform
+    ├── davinci
+    │   ├── davinci_flow.rego
+    │   └── davinci_flow_test.rego
+    ├── flow_checks
+    │   └── flow_checks.rego
+    └── library
+        ├── library.rego
+        └── library_test.rego
+```
+
+The package names are reflected in the directory structure.  For example, the davinci_flow package name is `terraform.davinci`, matching the directory and subdirectory in which the file is located. The library files are common terraform routines that can be used across multiple policies.  The `flow_checks` directory contains functions written specifically to filter flows and perform generic policy rules evaluation. The `davinci` directory contains the specific implementation of the policies run against `davinci_flow` resources.  The files ending with `_test.rego` are used to validate policies against sample input.
+
+An examination of the files will show that there is a hierarchy of imports.  The `library` files are imported by the `flow_checks` files, which are imported by the `davinci_flow` files.  This hierarchy allows for the reuse of common functions across multiple policies.
+
+Further investigation of the files is recommended, but to emphasize the simplicity of the policy enforcement, the `davinci_flow.rego` file is provided below:
+
+```bash
+# DISCLAIMER: This file is intended for demonstration and example purposes only.
+# It is provided "as is" without any warranties or guarantees of accuracy or fitness for use.
+# Use at your own risk and adapt to your specific requirements before production use.
+
+package terraform.davinci
+
+import data.terraform.flow_checks
+import rego.v1
+
+resources := input.resource_changes # Explicitly access resources from input
+
+# Retrieve all relevant flows with the "create" or "update" action
+relevant_flows := flow_checks.relevant_flows(resources, ["create", "update"])
+
+# Check if `deploy` is true for all relevant flows
+deploy_true if {
+	# print("Checking if deploy is true for all relevant flows:", relevant_flows) # Debugging output
+	flow_checks.deploy_is_true_for_all(relevant_flows)
+}
+
+# Check if all flow names start with "AppTeam"
+name_starts_with_appteam if {
+	# print("Checking if all relevant flows start with 'AppTeam':", relevant_flows) # Debugging output
+	flow_checks.name_starts_with_prefix(relevant_flows, "AppTeam")
+}
+
+# METADATA
+# title: Davinci Flow "Master" rule set
+# description: Determine if all 'davinci_flow' resources meet the required conditions.
+# entrypoint: true
+deny[msg] if {
+	not deploy_true
+	msg := "All 'davinci_flow' resources must have 'deploy' set to true."
+	# print("Deny triggered for deploy:", msg)  # Debugging output
+}
+
+# Deny if any flow name does not start with "AppTeam"
+deny[msg] if {
+	not name_starts_with_appteam
+	msg := "All 'davinci_flow' resources must have names starting with 'AppTeam'."
+	# print("Deny triggered for name prefix:", msg)  # Debugging output
+}
+```
+
+#### Policy Testing
+
+To test the policies, a wrapper script is provided. "Testing" in this instance refers to validation that the rules are operating as expected.  To run the tests, execute the following command:
+
+```bash
+./scripts/policy_utils.sh
+```
+
+Output:
+
+```bash
+No options provided. Defaulting to running the sample OPA policy tests...
+Use --help for more options.
+Running tests...
+PASS: 8/8
+```
+
+For a verbose output, pass in either the `--verbose` or `-v` flag:
+
+```bash
+./scripts/policy_utils.sh
+
++ shift
++ test -z ''
++ '[' true = true ']'
++ set -x
++ '[' false = false ']'
++ echo 'No options provided. Defaulting to running the sample OPA policy tests...'
+No options provided. Defaulting to running the sample OPA policy tests...
++ echo 'Use --help for more options.'
+Use --help for more options.
++ run_policy_tests
++ echo hxB
++ grep -q x
++ echo 'Running tests in verbose mode...'
+Running tests in verbose mode...
++ cd opa
++ opa test -v -b .
+terraform/davinci/davinci_flow_test.rego:
+data.terraform.davinci_test.test_all_conditions_pass: PASS (2.067353ms)
+data.terraform.davinci_test.test_deploy_fail: PASS (907.986µs)
+data.terraform.davinci_test.test_name_prefix_fail: PASS (1.85553ms)
+
+terraform/library/library_test.rego:
+data.terraform.library_test.test_resources_by_type: PASS (356.852µs)
+data.terraform.library_test.test_resources_by_action: PASS (370.007µs)
+data.terraform.library_test.test_resources_by_type_and_action: PASS (374.088µs)
+data.terraform.library_test.test_resource_by_name: PASS (292.253µs)
+data.terraform.library_test.test_resource_by_type_and_name: PASS (320.96µs)
+--------------------------------------------------------------------------------
+PASS: 8/8
+```
+
+#### Policy Enforcement
+
+To see the policy enforcement in action, a new DaVinci flow would need to be created, or an existing one modified.  As an example of a create, the following command was used.  The command generated a Terraform plan, converted it to JSON, and ran the policy checks against the plan.  If you want to run it on your own, you will have had to successfully run the `./scripts/local_feature_deploy.sh` script at least once to create a state file in the S3 bucket, and supply Terraform files to update or create the tested object. The state file is required to run `terraform plan` successfully.
+
+```bash
+./scripts/policy_utils.sh --plan-and-eval
+```
+
+Truncated output:
+
+```bash
+Initializing the backend...
+Initializing modules...
+Initializing provider plugins...
+
+...
+
+var.pingone_target_environment_id
+  The target environment id to which to deploy the application
+
+  Enter a value: <environment_id>
+
+
+Terraform will perform the following actions:
+
+...
+
+  # davinci_flow.registration_flow will be created
+  + resource "davinci_flow" "registration_flow" {
+      + deploy                  = true
+      + description             = "Imported on Tue May 16 2023 19:35:07 GMT+0000 (Coordinated Universal Time)"
+      + environment_id          = "7b3378ed-3d11-4c67-95fe-8fc78eaa129b"
+      + flow_configuration_json = (sensitive value)
+      + flow_export_json        = (sensitive value)
+      + flow_json               = (sensitive value)
+      + flow_variables          = (known after apply)
+      + id                      = (known after apply)
+      + name                    = "AppTeam PingOne DaVinci Registration Example"
+
+
+...
+
+##################################################
+Running OPA policy evaluation...
+
+
+Policy Passed: No deny messages found.
+```
+
+Notice the name of the flow and the deploy flag.  The policy check passed because the name started with `AppTeam` and the deploy flag was set to `true`.
+
+In the case of a failed test against the policy, the output will indicate the failure and the reason for the failure. In the pipeline, it creates a failure to stop deployment. To see this in action, the **./opa/plan.json** file resource_changes block was modified. The davinci_flow resource `deploy` flag was set to `false`, and the name of the flow changed from "AppTeam PingOne DaVinci Registration Example" to "xxxAppTeam PingOne DaVinci Registration Example". Running the script again with the appropriate flag to only perform the evaluation step resulted in the following:
+
+```bash
+./scripts/policy_utils.sh --eval-only
+```
+
+Output:
+
+```bash
+##################################################
+Running OPA policy evaluation...
+
+
+Policy Failed: Deny messages found.
+Deny messages:
+{
+  "All 'davinci_flow' resources must have 'deploy' set to true.": true,
+  "All 'davinci_flow' resources must have names starting with 'AppTeam'.": true
+}
+```
+
+#### Policy Linting
+
+The sample policies were linted using the `regal` utility.  Linting is a best practice that ensures that all developers are creating files that meet a known standard.  If you are going to be developing policies, it is recommended that to lint the files before committing them to the repository.  To lint the files, run the following command:
+
+```bash
+regal lint ./opa
+```
+
+For more information on the `regal` utility, see the link referenced in the prerequisites section.
