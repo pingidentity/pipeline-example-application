@@ -85,7 +85,7 @@ opa_eval() {
     echo ""
     # We want to continue running the script even if the OPA evaluation fails (|| true)
     # shellcheck disable=SC2015
-    cd "${OPADIR}" && opa eval -i plan.json -d ./policies/flow_checks.rego -d ./policies/davinci_flow.rego -d ./policies/library.rego 'data.terraform.davinci.deny' > opa_output.json || true
+    cd "${OPADIR}" && opa eval -i plan.json -b . 'data.terraform.davinci.deny' > opa_output.json || true
 
     # Check if the deny result is non-empty
     deny_result=$(jq '.result[0].expressions[0].value' opa_output.json)
@@ -106,10 +106,10 @@ run_policy_tests() {
     # Check if verbose mode is enabled
     if echo "$-" | grep -q x; then
         echo "Running tests in verbose mode..."
-        cd "${OPADIR}" && opa test -v ./policies/flow_checks.rego ./policies/davinci_flow.rego ./policies/library.rego ./policies/davinci_flow_test.rego && cd ..
+        cd "${OPADIR}" && opa test -v -b . && cd ..
     else
         echo "Running tests..."
-        cd "${OPADIR}" && opa test ./policies/flow_checks.rego ./policies/davinci_flow.rego ./policies/library.rego ./policies/davinci_flow_test.rego && cd ..
+        cd "${OPADIR}" && opa test -b . && cd ..
     fi
 }
 

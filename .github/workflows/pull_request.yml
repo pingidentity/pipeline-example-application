@@ -47,6 +47,19 @@ jobs:
         echo "***Running terraform lint***"
         tflint
 
+  validate-scripts:
+    needs: [fmt]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+    - name: Check out code 
+      uses: actions/checkout@v4
+
+    - name: Validate Scripts
+      run: |
+        scripts/shellcheck.sh
+        scripts/shfmt.sh --diff
+
   validate:
     needs: [lint]
     name: validate
@@ -96,9 +109,54 @@ jobs:
         hide-progress: false
         exit-code: '1'
 
+  policy-check:
+    name: OPA Policy Check
+    needs: [trivy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      TERRAFORM_ENV_BASE64: ${{ secrets.TERRAFORM_ENV_BASE64 }}
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+    - uses: hashicorp/setup-terraform@v3
+    - run: |-
+        echo "***Installing opa***"
+        curl -L -o opabin https://openpolicyagent.org/downloads/v0.70.0/opa_linux_amd64_static
+        chmod 755 ./opabin
+        echo $TERRAFORM_ENV_BASE64 | base64 -d > tfvars
+        source tfvars
+        _tfdir=terraform
+        _branch=$(echo "${GITHUB_REF}" | sed -e "s#refs/heads/##g")
+        export TF_VAR_pingone_environment_name=${_branch}
+        case $_branch in
+          prod)
+            _stateKey="${TF_VAR_tf_state_key_prefix}/prod/terraform.tfstate"
+            export TF_VAR_pingone_target_environment_id="${PINGONE_TARGET_ENVIRONMENT_ID_PROD}"
+            ;;
+          qa)
+            _stateKey="${TF_VAR_tf_state_key_prefix}/qa/terraform.tfstate"
+            export TF_VAR_pingone_target_environment_id="${PINGONE_TARGET_ENVIRONMENT_ID_QA}"
+            ;;
+          *)
+            echo "Local feature branch detected, skipping deployment"
+            exit 0
+            ;;
+        esac
+        echo "_stateKey: ${_stateKey}"
+        terraform -chdir=${_tfdir} init \
+          -backend-config="bucket=$TF_VAR_tf_state_bucket" \
+          -backend-config="region=$TF_VAR_tf_state_region" \
+          -backend-config="key=${_stateKey}"
+        echo "***Running terraform plan***"
+        terraform -chdir="${_tfdir}" plan -out=plan.tfplan
+        echo "***Converting plan to json***"
+        terraform -chdir="${_tfdir}" show -no-color -json plan.tfplan > ./opa/plan.json
+        sudo mv opabin /usr/local/bin/opa
+        ./scripts/policy_utils.sh --eval-only
 
   tfplan:
-    needs: [validate]
+    needs: [policy-check]
     runs-on: ubuntu-latest
     env:
       TERRAFORM_ENV_BASE64: ${{ secrets.TERRAFORM_ENV_BASE64 }}
