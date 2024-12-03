@@ -206,7 +206,7 @@ source localsecrets
 
 12. To capture the changes for inclusion in your code, export the flow. You can do so by selecting the three dots at the top right of the DaVinci flow editor UI and clicking **Download Flow JSON**. Ensure to select **Include Variable Values** when you export.
 
-![Export Menu](./img/pingOneEnvs.png "Export Menu")
+![Export Menu](./img/exportMenu.png "Export Menu")
 
 13. For the sake of brevity, assume that testing has been done, and you are ready to proceed. After the application is "tested", the new configuration must be added to the Terraform configuration. This addition will happen in a few steps:
 
