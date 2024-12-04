@@ -194,11 +194,11 @@ source localsecrets
 > [!NOTE]
 > For demo purposes, there is a self-signed certificate in the Docker image that will require you to accept the security warning in your browser to proceed.
 
-1. On the next panel, you are told to provide the email and password. There are password rules in place, but you are not informed. Try using a simple password such as `password`. The form does not indicate there is a problem, but refuses to accept the password and continue.  The password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.  
+7. On the next panel, you are told to provide the email and password. There are password rules in place, but you are not informed. Try using a simple password such as `password`. The form does not indicate there is a problem, but refuses to accept the password and continue.  The password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.  
 
-2. Create a valid password. After registering the user, you will be redirected to login.
+8. Create a valid password. After registering the user, you will be redirected to login.
 
-3. To improve the flow, you will add a prompt on the registration page to indicate the password requirements.  To do so, select the **Registration Window** node in the Davinci flow editor. Replace the text in the HTML Template editor with the following code block. The only change from what is provided is the addition of the password requirements notification and some descriptive comments.
+9. To improve the flow, you will add a prompt on the registration page to indicate the password requirements.  To do so, select the **Registration Window** node in the Davinci flow editor. Replace the text in the HTML Template editor with the following code block. The only change from what is provided is the addition of the password requirements notification and some descriptive comments.
 
 ```html
 <form id="registerForm">
