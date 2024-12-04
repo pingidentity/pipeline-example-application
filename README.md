@@ -127,9 +127,30 @@ gh secret set --app actions TERRAFORM_ENV_BASE64 --body $_secrets
 unset _secrets
 ```
 
+### Deploy Prod and QA
+
+The final step before working on features is to deploy the sample Davinci flow to the `prod` and `qa` environments.
+
+Under the **Actions** tab in Github, locate the failed **Initial commit** workflow that failed when the repository was created.  Click "Re-run jobs" and choose "Re-run all jobs". If your secrets are configured correctly, this action should result in the successful deployment of the sample Davinci workflow to the "prod" environment in your PingOne account.
+
+![re-run all jobs](./img/rerunalljobs.png "Re-run All Jobs")
+
+![prod deployed](./img/proddeployed.png "Prod Deployed")
+
+To deploy the flow to the `qa` environment, create and push a new branch from prod with the name `qa`:
+
+```bash
+git checkout prod
+git pull origin prod
+git checkout -b qa
+git push origin qa
+```
+
+![QA deployed](./img/qadeployed.png "QA Deployed")
+
 ## Development Example Overview
 
-To experience the developer's perspective, a walkthrough follows. The demonstration will simulate the use case of modifying a Davinci flow and promoting the change. To simplify the demonstration, a starting pre-configured flow will be created using Terraform.  The UI components will be built into a Docker image and launched on your local machine. After you have deployed the flow, you will be able to make the changes necessary in the PingOne UI, export the configuration, and promote the change to the QA and Prod environments.
+To experience the developer's perspective, a walkthrough follows. The demonstration will simulate the use case of modifying a Davinci flow and promoting the change. To simplify the demonstration, a starting pre-configured flow is included that will be deployed using Terraform.  The UI components will be built into a Docker image and launched on your local machine. After you have deployed the flow, you will be able to make the changes necessary in the PingOne UI, export the configuration, and promote the change to the QA and Prod environments.
 
 ## Feature Development
 
@@ -168,17 +189,16 @@ source localsecrets
 
 5. Confirm the deployment by examining the Davinci flow in the PingOne console in the development environment matching the ID you provided. Click on the Davinci link from the PingOne console to open the DaVinci console and select **Flows** from the left navigation panel. Click on the **PingOne DaVinci Registration Example** flow to view the configuration.
 
-6. The Terraform configuration also deployed a sample client application in a local docker container that can be used to try out the flow by navigating to [https://127.0.0.1:8443](https://127.0.0.1:8443). You will be presented a simple progressive profiling style form to enter an email address. If the email address is not found, you will be prompted to register the user.
+6. The Terraform configuration also deployed a sample client application in a local container that can be used to try out the flow by navigating to [https://127.0.0.1:8443](https://127.0.0.1:8443). You will be presented a simple progressive profiling style form to enter an email address. If the email address is not found, you will be prompted to register the user.
 
 > [!NOTE]
 > For demo purposes, there is a self-signed certificate in the Docker image that will require you to accept the security warning in your browser to proceed.
 
+1. On the next panel, you are told to provide the email and password. There are password rules in place, but you are not informed. Try using a simple password such as `password`. The form does not indicate there is a problem, but refuses to accept the password and continue.  The password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.  
 
-7. On the next panel, you are told to provide the email and password. There are password rules in place, but you are not informed when prompted. Try using a simple password such as `password`. The form does not indicate there is a problem, but refuses to accept the password and continue.  The password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.  
+2. Create a valid password. After registering the user, you will be redirected to login.
 
-8. Create a valid password. After registering the user, you will be redirected to login.
-
-9. To improve the flow, you will add a small prompt on the registration page to indicate that the password must meet the requirements.  To do so, select the **Registration Window** node in the Davinci flow editor. Replace the text in the HTML Template editor with the following code block. The only change from what is provided is the addition of the password requirements notification and some descriptive comments.
+3. To improve the flow, you will add a prompt on the registration page to indicate the password requirements.  To do so, select the **Registration Window** node in the Davinci flow editor. Replace the text in the HTML Template editor with the following code block. The only change from what is provided is the addition of the password requirements notification and some descriptive comments.
 
 ```html
 <form id="registerForm">
@@ -210,7 +230,7 @@ source localsecrets
 
 13. For the sake of brevity, assume that testing has been done, and you are ready to proceed. After the application is "tested", the new configuration must be added to the Terraform configuration. This addition will happen in a few steps:
 
-  a. Copy the contents of the downloaded JSON file and use them to replace the `terraform/davinci-flows/davinci-widget-reg-authn-flow.json` file contents. If you examine the changes, you will see that it involves the company ID, metadata about the file and the changes you made to the node in the flow.
+  a. Copy the contents of the downloaded JSON file and replace the `terraform/davinci-flows/davinci-widget-reg-authn-flow.json` file contents. If you examine the changes, you will see that it involves the company ID, metadata about the file and the changes you made to the node in the flow.
 
   b. Run the deploy script again:
 
@@ -306,7 +326,7 @@ The files provided for deploying the application will pass the policy check as p
 
 The example policy performs two checks against the Terraform plan:
 
-- Ensure that the `name` attribute of any `davinci_flow` resource to be created or updated starts with the string `AppTeam`.  The example use case is our fictitious company wants the name of the team to be reflected in every flow name for easy identification.
+- Ensure that the `name` attribute of any `davinci_flow` resource to be created or updated starts with the string `AppTeam`.  The use case is our fictitious company wants the name of the team to be reflected in every flow name for easy identification.
 - Ensure that the `deploy` flag is set to `true` for any `davinci_flow` resource to be created or updated.  The use case here is to ensure that all flows are deployed when they are created or updated.
 
 > [!NOTE]
@@ -414,7 +434,7 @@ PASS: 8/8
 For a verbose output, pass in either the `--verbose` or `-v` flag:
 
 ```bash
-./scripts/policy_utils.sh
+./scripts/policy_utils.sh --verbose
 
 + shift
 + test -z ''
@@ -449,7 +469,7 @@ PASS: 8/8
 
 #### Policy Enforcement
 
-To see the policy enforcement in action, a new DaVinci flow would need to be created, or an existing one modified.  As an example of a create, the following command was used.  The command generated a Terraform plan, converted it to JSON, and ran the policy checks against the plan.  If you want to run it on your own, you will have had to successfully run the `./scripts/local_feature_deploy.sh` script at least once to create a state file in the S3 bucket, and supply Terraform files to update or create the tested object. The state file is required to run `terraform plan` successfully.
+To see the policy enforcement in action, a new DaVinci flow would need to be created, or an existing one modified.  As an example, the following command was used.  The command generated a Terraform plan, converted it to JSON, and ran the policy checks against the plan.  If you want to run it on your own, you will have had to successfully run the `./scripts/local_feature_deploy.sh` script at least once to create a state file in the S3 bucket, and supply Terraform files to update or create the tested object. The state file is required to run `terraform plan` successfully.
 
 ```bash
 ./scripts/policy_utils.sh --plan-and-eval
@@ -521,7 +541,7 @@ Deny messages:
 
 #### Policy Linting
 
-The sample policies were linted using the `regal` utility.  Linting is a best practice that ensures that all developers are creating files that meet a known standard.  If you are going to be developing policies, it is recommended that to lint the files before committing them to the repository.  To lint the files, run the following command:
+The sample policies were linted using the `regal` utility.  Linting is a best practice that ensures that all developers are creating files that meet a known standard.  If you are going to be developing policies, it is recommended that to lint the files before they are commited to the repository.  To lint the files, run the following command:
 
 ```bash
 regal lint ./opa
