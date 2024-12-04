@@ -127,7 +127,7 @@ jobs:
         echo $TERRAFORM_ENV_BASE64 | base64 -d > tfvars
         source tfvars
         _tfdir=terraform
-        _branch=$(echo "${GITHUB_REF}" | sed -e "s#refs/heads/##g")
+        _branch="${GITHUB_BASE_REF}"
         export TF_VAR_pingone_environment_name=${_branch}
         case $_branch in
           prod)
@@ -139,7 +139,7 @@ jobs:
             export TF_VAR_pingone_target_environment_id="${PINGONE_TARGET_ENVIRONMENT_ID_QA}"
             ;;
           *)
-            echo "Local feature branch detected, skipping deployment"
+            echo "Local feature branch detected, skipping OPA policy check"
             exit 0
             ;;
         esac
