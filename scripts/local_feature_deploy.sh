@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
+# Copyright © 2026 Ping Identity Corporation
 # shellcheck disable=SC2154
 
 ### this script is used to run terraform apply for your local feature branch only. ###

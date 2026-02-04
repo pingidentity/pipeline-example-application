@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
+# Copyright © 2026 Ping Identity Corporation
 # shellcheck disable=SC2154
 
 ## this holds the common functions used by other scripts ####
