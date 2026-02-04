@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright © 2026 Ping Identity Corporation
 
 ### this script is a wrapper around OPA policy functions. ###
 # shellcheck disable=SC3010
